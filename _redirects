@@ -1,0 +1,11 @@
+# Cloudflare Pages Redirects Configuration
+#
+#
+# Redirect homepage to GitHub repository
+/ https://github.com/embedlite 302
+#
+#
+# Handle Youtube embeds
+/embed/* /embed-youtube 200
+/video/* /embed-youtube 200
+/youtube/* /embed-youtube 200

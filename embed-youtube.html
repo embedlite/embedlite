@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        #player-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            cursor: pointer;
+            contain: layout style paint;
+            will-change: contents;
+        }
+
+        #thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+            contain: paint;
+        }
+
+        #play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%);
+            pointer-events: none;
+            contain: layout style;
+        }
+
+        #overlay > * {
+            pointer-events: auto;
+        }
+
+        #video-title {
+            flex: 1;
+            color: rgb(238, 238, 238);
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 23.4px;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            margin-right: 12px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #copy-link {
+            position: relative;
+            background-color: transparent;
+            border: none;
+            padding: 0;
+            color: rgb(238, 238, 238);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 48px;
+            margin: 0 10px;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ytp-copylink-icon {
+            display: block;
+            width: 36px;
+            height: 36px;
+        }
+
+        .ytp-copylink-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ytp-copylink-title {
+            color: #fff;
+            display: block;
+            margin-top: 2px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #youtube-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            contain: strict;
+        }
+
+        .error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .error p {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div id="player-container">
+        <img id="thumbnail" alt="Video thumbnail">
+        <div id="play-button">
+            <svg width="68" height="48" viewBox="0 0 68 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#f00"/>
+                <path d="M 45,24 27,14 27,34" fill="#fff"/>
+            </svg>
+        </div>
+        <div id="overlay">
+            <div id="video-title"></div>
+            <button id="copy-link" class="ytp-button ytp-copylink-button ytp-show-copylink-title ytp-copylink-button-visible" data-tooltip-opaque="true" aria-label="Copy link" title="Copy link">
+                <div class="ytp-copylink-icon">
+                    <svg height="100%" version="1.1" viewBox="0 0 36 36" width="100%">
+                        <path d="M21.9,8.3H11.3c-0.9,0-1.7,.8-1.7,1.7v12.3h1.7V10h10.6V8.3z M24.6,11.8h-9.7c-1,0-1.8,.8-1.8,1.8v12.3  c0,1,.8,1.8,1.8,1.8h9.7c1,0,1.8-0.8,1.8-1.8V13.5C26.3,12.6,25.5,11.8,24.6,11.8z M24.6,25.9h-9.7V13.5h9.7V25.9z" fill="#fff"></path>
+                    </svg>
+                </div>
+                <div class="ytp-copylink-title" aria-hidden="true">Copy link</div>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+// Configuration
+const YOUTUBE_THUMBNAIL_URL = 'https://i.ytimg.com/vi/';
+const YOUTUBE_EMBED_URL = 'https://www.youtube-nocookie.com/embed/';
+const YOUTUBE_WATCH_URL = 'https://youtu.be/';
+const THUMBNAIL_QUALITY = 'maxresdefault';
+const DONE_ICON = `<svg height="100%" version="1.1" viewBox="0 0 36 36" width="100%"> <path d="M13.5,24.2l-5.6-5.6l1.4-1.4l4.2,4.2l10.8-10.8l1.4,1.4L13.5,24.2z" fill="#fff"></path> </svg>`;
+const COPY_ICON = `<svg height="100%" version="1.1" viewBox="0 0 36 36" width="100%"> <path d="M21.9,8.3H11.3c-0.9,0-1.7,.8-1.7,1.7v12.3h1.7V10h10.6V8.3z M24.6,11.8h-9.7c-1,0-1.8,.8-1.8,1.8v12.3  c0,1,.8,1.8,1.8,1.8h9.7c1,0,1.8-0.8,1.8-1.8V13.5C26.3,12.6,25.5,11.8,24.6,11.8z M24.6,25.9h-9.7V13.5h9.7V25.9z" fill="#fff"></path> </svg>`;
+// Parse URL parameters
+function parseUrlParams() {
+    const pathParts = window.location.pathname.split('/').filter(part => part !== '');
+    let videoId = '';
+    
+    // Look for video ID after /embed/ or /video/ path
+    const pathIndex = pathParts.findIndex(part => ['embed', 'video'].includes(part));
+
+    if (pathIndex !== -1 && pathParts[pathIndex + 1]) {
+        videoId = pathParts[pathIndex + 1];
+    }
+    
+    const params = new URLSearchParams(window.location.search);
+    
+    return {
+        videoId,
+        autoplay: ['true', '1'].includes(params.get('autoplay')),
+        title: params.get('title')
+    };
+}
+
+// Thumbnail loader module
+function loadThumbnail(videoId) {
+    const thumbnail = document.getElementById('thumbnail');
+    
+    function handleError() {
+        // Fallback to lower quality if maxresdefault fails
+        thumbnail.src = `${YOUTUBE_THUMBNAIL_URL}${videoId}/hqdefault.jpg`;
+    }
+    
+    thumbnail.addEventListener('error', handleError, { once: true });
+    
+    thumbnail.src = `${YOUTUBE_THUMBNAIL_URL}${videoId}/${THUMBNAIL_QUALITY}.jpg`;
+    thumbnail.alt = 'Video thumbnail';
+}
+
+// Player loader module
+function createPlayerLoader(videoId) {
+    let isLoaded = false;
+    
+    function load() {
+        if (isLoaded) return;
+        
+        const container = document.getElementById('player-container');
+        const iframe = document.createElement('iframe');
+        
+        // Build embed params from URL query params
+        const params = new URLSearchParams(window.location.search);
+        const embedParams = new URLSearchParams();
+        embedParams.set('autoplay', '1');
+        
+        // Add all query params except 'title' and 'autoplay' to embed URL
+        for (const [key, value] of params) {
+            if (key !== 'title' && key !== 'autoplay') {
+                embedParams.set(key, value);
+            }
+        }
+        
+        iframe.id = 'youtube-iframe';
+        iframe.src = `${YOUTUBE_EMBED_URL}${videoId}?${embedParams.toString()}`;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullscreen = true;
+        
+        container.replaceChildren(iframe);
+        isLoaded = true;
+    }
+    
+    return { load };
+}
+
+// Copy link module
+function createCopyLinkHandler(videoId) {
+    const copyButton = document.getElementById('copy-link');
+    const copyIcon = copyButton.querySelector('.ytp-copylink-icon');
+    const copyTitle = copyButton.querySelector('.ytp-copylink-title');
+    
+    function handleCopy(e) {
+        e.stopPropagation();
+        const videoUrl = `${YOUTUBE_WATCH_URL}${videoId}`;
+        
+        // Copy to clipboard using legacy method instead of clipboard API to avoid permission issues
+        const textarea = document.createElement('textarea');
+        textarea.value = videoUrl;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '0';
+        textarea.style.top = '0';
+        textarea.style.opacity = '0';
+        textarea.style.width = '1px';
+        textarea.style.height = '1px';
+        textarea.style.border = 'none';
+        textarea.style.outline = 'none';
+        textarea.style.resize = 'none';
+        textarea.setAttribute('readonly', '');
+        
+        document.body.appendChild(textarea);
+        
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0, videoUrl.length);
+        
+        const copied = document.execCommand('copy');
+        
+        document.body.removeChild(textarea);
+        
+        // Fallback to clipboard API
+        if (!copied && navigator.clipboard) {
+            navigator.clipboard.writeText(videoUrl).then(() => {
+                console.log('Clipboard API success');
+            }).catch(err => {
+                console.log('Clipboard API error:', err);
+            });
+        }
+        
+        // UI update
+        copyIcon.innerHTML = DONE_ICON;
+        copyTitle.textContent = 'Copied!';
+        copyButton.classList.add('copied');
+    }
+    
+    function handleMouseLeave() {
+        if (copyButton.classList.contains('copied')) {
+            copyIcon.innerHTML = COPY_ICON;
+            copyTitle.textContent = 'Copy link';
+            copyButton.classList.remove('copied');
+        }
+    }
+    
+    copyButton.addEventListener('click', handleCopy);
+    copyButton.addEventListener('mouseleave', handleMouseLeave);
+}
+
+// Error display module
+function showError(message) {
+    document.getElementById('player-container').innerHTML = `
+        <div class="error">
+            <h1>404</h1>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+// Preconnection handler
+function setupPreconnections() {
+    let preconnected = false;
+    
+    function createPreconnect() {
+        if (preconnected) return;
+        
+        // Create preconnect links dynamically
+        const preconnectUrls = [
+            'https://i.ytimg.com',
+            'https://www.youtube-nocookie.com'
+        ];
+        
+        const dnsPrefetchUrls = [
+            'https://www.youtube.com'
+        ];
+        
+        // Add preconnect links
+        preconnectUrls.forEach(url => {
+            const link = document.createElement('link');
+            link.rel = 'preconnect';
+            link.href = url;
+            document.head.appendChild(link);
+        });
+        
+        // Add DNS prefetch links
+        dnsPrefetchUrls.forEach(url => {
+            const link = document.createElement('link');
+            link.rel = 'dns-prefetch';
+            link.href = url;
+            document.head.appendChild(link);
+        });
+        
+        preconnected = true;
+    }
+    
+    // Preconnect on hover
+    document.addEventListener('mouseenter', createPreconnect, { once: true });
+    document.addEventListener('touchstart', createPreconnect, { once: true });
+}
+
+// Initialization
+function init() {
+    const { videoId, autoplay, title } = parseUrlParams();
+
+    if (!videoId) {
+        showError('No video ID provided');
+        return;
+    }
+    
+    // Set up preconnections on hover
+    setupPreconnections();
+    
+    // Load thumbnail
+    loadThumbnail(videoId);
+    
+    // Set video title
+    if (title) {
+        const decodedTitle = decodeURIComponent(title);
+        document.getElementById('video-title').textContent = decodedTitle;
+        document.title = decodedTitle;
+    }
+    
+    // Set up player
+    const playerLoader = createPlayerLoader(videoId);
+    
+    // Set up copy link handler
+    createCopyLinkHandler(videoId);
+    
+    // Click to play handler
+    document.getElementById('player-container').addEventListener('click', function(e) {
+        if (e.target.id !== 'copy-link' && !e.target.closest('#copy-link')) {
+            playerLoader.load();
+        }
+    });
+    
+    // Handle autoplay
+    if (autoplay) {
+        playerLoader.load();
+    }
+}
+
+// Start
+init();
+    </script>
+</body>
+</html>
