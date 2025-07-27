@@ -2,7 +2,7 @@
 #
 #
 # Redirect homepage to GitHub repository
-/ https://github.com/embedlite 302
+/ /index.html 200
 #
 #
 # Handle Youtube embeds

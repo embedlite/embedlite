@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>
+    EmbedLite — A drop-in, open-source replacement for YouTube embeds
+  </title>
+  <meta name="description"
+    content="EmbedLite — A drop-in, open-source replacement for YouTube embed iframes. Lightning fast, SEO-optimized, and privacy-friendly." />
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root {
+      --bg: #0f1117;
+      --fg: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #6366f1;
+      --border: #1f2937;
+      --radius: 14px;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+        Noto Sans, sans-serif;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #ffffff;
+        --fg: #111827;
+        --muted: #6b7280;
+        --accent: #4f46e5;
+        --border: #e5e7eb;
+      }
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+    }
+
+    header {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 4rem 1.25rem 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      margin: 0 0 1rem;
+    }
+
+    header p {
+      margin: 0 auto 1.5rem;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.85rem;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    section {
+      margin: 3.5rem 0;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin: 0 0 1rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid.cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 0.65rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--fg);
+      font-size: 1rem;
+    }
+
+    button {
+      border: 0;
+      border-radius: 0.6rem;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    button.outline {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    pre {
+      background: #0d0f14;
+      color: #e5e7eb;
+      border-radius: 0.6rem;
+      padding: 1rem;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    @media (prefers-color-scheme: light) {
+      pre {
+        background: #f9fafb;
+        color: #111827;
+      }
+    }
+
+    .flex {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .justify-between {
+      justify-content: space-between;
+    }
+
+    iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: 0;
+      border-radius: 0.6rem;
+      background: #000;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.25rem;
+      text-align: center;
+    }
+
+    .list {
+      margin: 0.5rem 0 0 1.25rem;
+    }
+
+    .list li {
+      margin: 0.25rem 0;
+    }
+
+    .kudos a {
+      color: inherit;
+    }
+
+    .smooth {
+      scroll-behavior: smooth;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .alert {
+      border-left: 4px solid var(--accent);
+      padding: 1rem 1rem 1rem 1.25rem;
+      background: rgba(99, 102, 241, 0.06);
+      border-radius: 0.5rem;
+    }
+  </style>
+</head>
+
+<body class="smooth">
+  <header>
+    <img src="/assets/img/embedlite.png" alt="EmbedLite" width="120" height="120" />
+    <h1>EmbedLite</h1>
+    <p>
+      A drop-in, open-source replacement for YouTube embed iframes. Lightning
+      fast, SEO-optimized, and privacy-friendly.
+    </p>
+
+    <div class="flex" style="
+          justify-content: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+          margin-top: 1.25rem;
+        ">
+      <a href="https://github.com/embedlite/embedlite" class="button outline"
+        style="padding: 0.6rem 1rem; border-radius: 0.5rem">GitHub</a>
+      <a href="#playground" class="button" style="padding: 0.6rem 1rem; border-radius: 0.5rem">Try&nbsp;it&nbsp;now</a>
+      <a href="#usage" class="button outline" style="padding: 0.6rem 1rem; border-radius: 0.5rem">Quick&nbsp;docs</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Why -->
+    <section id="why" class="grid cols-2">
+      <div>
+        <h2>Why EmbedLite?</h2>
+        <p>
+          YouTube's embed iframe loads scripts, tracking, and heavy assets
+          even if the user never presses play. This hurts load times, SEO, and
+          the overall user experience.
+        </p>
+        <p>
+          EmbedLite swaps the heavy iframe for a lightweight placeholder that
+          loads the real YouTube player only on demand.
+        </p>
+      </div>
+      <div class="card">
+        <p class="muted" style="margin: 0">Here's how it works:</p>
+        <pre><code>-- &lt;iframe src="https://youtube.com/embed/..."
+++ &lt;iframe src="https://embedlite.com/embed/..."</code></pre>
+        <p class="muted" style="margin: 0.5rem 0 0">
+          Yes, that's literally it.
+        </p>
+      </div>
+    </section>
+
+    <!-- Playground -->
+    <section id="playground">
+      <h2>Playground</h2>
+      <p>
+        Paste a YouTube URL (short or long) and get a ready-to-copy
+        <code>embedlite.com</code> iframe.
+      </p>
+
+      <div class="card" style="margin-top: 1rem">
+        <form id="generator" onsubmit="event.preventDefault(); generate();">
+          <label for="yt" class="sr-only">YouTube URL</label>
+          <input id="yt" type="url" placeholder="https://www.youtube.com/watch?v=aqz-KE-bpKQ" required
+            value="https://www.youtube.com/watch?v=aqz-KE-bpKQ" />
+          <div class="flex" style="margin-top: 0.75rem">
+            <button type="submit">Generate embed</button>
+            <button type="button" class="outline" onclick="resetPreview()">
+              Reset
+            </button>
+          </div>
+        </form>
+
+        <div id="result" style="margin-top: 1.25rem; display: none">
+          <div class="flex justify-between">
+            <h3 style="margin: 0">Your embed code</h3>
+            <button class="outline" id="copy">Copy</button>
+          </div>
+          <pre id="code"></pre>
+
+          <h3 style="margin: 1.25rem 0 0.5rem">Live preview</h3>
+          <iframe id="preview" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo -->
+    <section id="demo">
+      <h2>Demo</h2>
+      <div class="card">
+        <iframe src="https://www.embedlite.com/embed/aqz-KE-bpKQ" title="Me at the zoo"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+        </iframe>
+      </div>
+    </section>
+
+    <!-- Usage -->
+    <section id="usage">
+      <h2>Usage</h2>
+      <p>Simply swap the domain in any YouTube iframe:</p>
+      <pre><code>-- &lt;iframe src="https://youtube.com/embed/..."
+++ &lt;iframe src="https://embedlite.com/embed/..."</code></pre>
+      <p>All other query params are passed straight to the YouTube player.</p>
+
+      <h2>Examples</h2>
+      <pre><code>https://embedlite.com/embed/dQw4w9WgXcQ?controls=0&amp;mute=1&amp;start=30&amp;end=120
+https://embedlite.com/embed/dQw4w9WgXcQ?autoplay=true&amp;title=Rick%20Astley</code></pre>
+    </section>
+
+    <!-- Lazy? -->
+    <section id="lazy">
+      <h2>What about <code>loading="lazy"</code> ?</h2>
+
+      <p>
+        The native attribute <code>loading="lazy"</code> only tells the
+        browser to postpone the <em>initial network request</em> for the full
+        YouTube iframe until it scrolls near the viewport — nothing more.
+      </p>
+
+      <ul class="list">
+        <li>
+          <strong>Payload unchanged.</strong> The moment the iframe enters
+          view, the browser still downloads ±&nbsp;500 KB-1.3 MB of player
+          JavaScript, CSS and tracking assets
+        </li>
+
+        <li>
+          <strong>CPU &amp; main-thread cost.</strong> Those scripts parse and
+          execute right away, blocking the main thread and hurting interaction
+          timing.
+        </li>
+
+        <li>
+          <strong>Tracking still fires.</strong> YouTube's analytics beacons
+          and cookies load even if the visitor never hits “Play”.
+        </li>
+
+        <li>
+          <strong>Many videos ≈ many hits.</strong> On pages with several
+          embeds, a quick scroll can trigger <em>all</em> of them
+          simultaneously, spiking bandwidth and jank.
+        </li>
+      </ul>
+
+      <p>
+        EmbedLite keeps the page lightweight by serving nothing but a static
+        thumbnail (≈ 15 KB) until the user clicks, so no large downloads or
+        trackers run without real intent.
+      </p>
+    </section>
+
+    <!-- Disclaimer -->
+    <section id="disclaimer">
+      <h2>Disclaimer</h2>
+      <p>
+        EmbedLite is not affiliated with YouTube or Google. It uses the
+        official YouTube embed player and complies with YouTube's Terms of
+        Service by loading the standard YouTube iframe only after user
+        interaction.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="kudos">
+      Made with ♥ by the
+      <a href="https://github.com/embedlite/embedlite">EmbedLite community</a>
+    </div>
+  </footer>
+
+  <script>
+    function parseYouTubeId(url) {
+      try {
+        const u = new URL(url);
+        if (u.hostname === "youtu.be") {
+          return u.pathname.slice(1);
+        }
+        if (u.searchParams.has("v")) {
+          return u.searchParams.get("v");
+        }
+        const parts = u.pathname.split("/");
+        const idx = parts.indexOf("embed");
+        if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
+      } catch (e) {
+        return null;
+      }
+      return null;
+    }
+    function generate() {
+      const input = document.getElementById("yt").value.trim();
+      const id = parseYouTubeId(input);
+      const result = document.getElementById("result");
+      const code = document.getElementById("code");
+      const preview = document.getElementById("preview");
+      if (!id) {
+        alert("Could not extract a video ID from this URL.");
+        return;
+      }
+      const src = `https://www.embedlite.com/embed/${id}`;
+      const iframe = `<iframe width="560" height="315" src="${src}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+      code.textContent = iframe;
+      preview.src = src;
+      result.style.display = "block";
+    }
+    function resetPreview() {
+      document.getElementById("result").style.display = "none";
+      document.getElementById("code").textContent = "";
+      document.getElementById("preview").src = "";
+      document.getElementById("yt").value =
+        "https://www.youtube.com/watch?v=aqz-KE-bpKQ";
+    }
+    document.getElementById("copy").addEventListener("click", async () => {
+      const code = document.getElementById("code").textContent;
+      try {
+        await navigator.clipboard.writeText(code);
+        const btn = document.getElementById("copy");
+        const prev = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = prev), 1200);
+      } catch {
+        alert("Copy failed. Please select the code block and copy manually.");
+      }
+    });
+  </script>
+</body>
+
+</html>
