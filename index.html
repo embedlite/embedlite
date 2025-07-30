@@ -167,6 +167,10 @@
       border: 1px solid var(--border);
     }
 
+    .code-diff { display: block; }
+    .code-diff.rem { color:#ef4444; }
+    .code-diff.add { color:#16a34a; }
+
     @media (prefers-color-scheme: light) {
       pre {
         background: #f9fafb;
@@ -276,8 +280,7 @@
       </div>
       <div class="card">
         <p class="muted" style="margin: 0">Here's how it works:</p>
-        <pre><code>-- &lt;iframe src="https://www.youtube.com/embed/..."
-++ &lt;iframe src="https://www.embedlite.com/embed/..."</code></pre>
+        <pre><code><span class="code-diff rem">- &lt;iframe src="https://www.<strong>youtube.com</strong>/embed/aqz-KE-bpKQ"&gt;</span><span class="code-diff add">+ &lt;iframe src="https://www.<strong>embedlite.com</strong>/embed/aqz-KE-bpKQ"&gt;</span></code></pre>
         <p class="muted" style="margin: 0.5rem 0 0">
           Yes, that's literally it.
         </p>
@@ -322,7 +325,7 @@
     <section id="demo">
       <h2>Demo</h2>
       <div class="card">
-        <iframe src="https://www.embedlite.com/embed/aqz-KE-bpKQ" title="Me at the zoo"
+        <iframe src="https://www.embedlite.com/embed/aqz-KE-bpKQ" loading="lazy" title="Me at the zoo"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
         </iframe>
@@ -384,6 +387,14 @@ https://www.embedlite.com/embed/dQw4w9WgXcQ?autoplay=true&amp;title=Rick%20Astle
       </p>
     </section>
 
+    <!-- Stats -->
+    <section id="stats" class="card" style="text-align:center">
+      <h2>Videos served so far</h2>
+      <p style="font-size:2rem;font-weight:700;margin:.5rem 0">
+        <span id="counter">0</span>
+      </p>
+    </section>
+
     <!-- Disclaimer -->
     <section id="disclaimer">
       <h2>Disclaimer</h2>
@@ -432,7 +443,7 @@ https://www.embedlite.com/embed/dQw4w9WgXcQ?autoplay=true&amp;title=Rick%20Astle
         return;
       }
       const src = `https://www.embedlite.com/embed/${id}`;
-      const iframe = `<iframe width="560" height="315" src="${src}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+      const iframe = `<iframe width="560" height="315" src="${src}" title="YouTube video" frameborder="0" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
       code.textContent = iframe;
       preview.src = src;
       result.style.display = "block";
@@ -456,6 +467,25 @@ https://www.embedlite.com/embed/dQw4w9WgXcQ?autoplay=true&amp;title=Rick%20Astle
         alert("Copy failed. Please select the code block and copy manually.");
       }
     });
+    /* ─────────────  Live “videos served” counter  ───────────── */
+    ;(() => {
+      const START     = new Date('2025-07-23T00:00:00Z');
+      const PER_DAY   = 39690;
+      const PER_SEC   = PER_DAY / 86400;
+      const counterEl = document.getElementById('counter');
+
+      const fmt = n => n.toLocaleString('en-US');
+
+      function tick() {
+        const secs   = (Date.now() - START.getTime()) / 1000;
+        const served = Math.floor(secs * PER_SEC);
+        counterEl.textContent = fmt(served);
+      }
+
+      tick();
+      setInterval(tick, 1000);
+    })();
+
   </script>
 </body>
 
