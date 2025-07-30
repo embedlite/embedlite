@@ -1,8 +1,8 @@
 # Cloudflare Pages Redirects Configuration
 #
 #
-# Redirect homepage to GitHub repository
-/ /index.html 200
+# Redirect root to homepage
+/ /homepage.html 200
 #
 #
 # Handle Youtube embeds
