@@ -65,4 +65,4 @@ https://embedlite.com/embed/dQw4w9WgXcQ?autoplay=true&title=Rick%20Astley
 
 ## Disclaimer
 
-EmbedLite is not affiliated with YouTube or Google in any way. This project uses the official YouTube embed player and complies with [YouTube's Terms of Service](https://www.youtube.com/t/terms) by loading the standard YouTube iframe only after user interaction.
+EmbedLite is not affiliated with YouTube or Google in any way. This project uses the official YouTube embed player and complies with [YouTube's Terms of Service](https://www.youtube.com/t/terms) by loading the standard YouTube iframe only after user interaction. In fact, it's how Google itself embeds videos on their [official company blog](https://blog.google).
